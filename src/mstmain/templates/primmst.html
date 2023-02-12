@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="eng">
+	<head>
+		<title>"X509v3 Certificate Chain"</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<style type="text/css">
+			label {
+				font-size: 12px;
+				font-family:Arial, Helvetica, sans-serif;
+			}
+
+			nav {
+				border-bottom: 1px solid black;
+			}
+
+			.certnav ol {
+				list-style-type: none;
+				padding-left: 0;
+			}
+
+			.certnavli {
+				display: inline-block;
+				margin: 10px;
+			}
+
+			.errortext {
+				color: red;
+				background-color: white;
+			}
+
+			.errornotext {
+				color: black;
+				background-color: red;
+			}
+
+			.noerroralert {
+				display: none;
+			}
+
+			.erroralert {
+				color: red;
+				font-size: 16px;
+				border: 2px solid black;
+				font-family: Arial, Helvetica, sans-serif;
+				padding: 5px;
+				width: 200px;
+				text-align: center;
+			}
+
+			.subject {
+				width: 100px;
+				float: left;
+				text-align: right;
+				margin-right: 10px;
+			}
+
+			.crlchecking, .basicconstraints {
+				width: 50px;
+				float: left;
+				text-align: right;
+				margin-right: 10px;
+			}
+
+			#version {
+				width: 10px;
+			}
+
+			#numinterCAs {
+				font: bold 16px sans-serif;
+			}
+
+		</style>
+	</head>
+	<body>
+		<form action="http://127.0.0.1:8080/certchaindisplay" method="post">
+			<fieldset>
+				<legend>X509v3 Certificate Chain</legend>
+				<p name="erroralert" class="{{.erroralert.Error}}">FORM ERRORS IN RED</p>
+				<p>All the certificates in the chain <strong>must</strong> be either RSA or ECDSA.</p>
+				<nav class="certnav">
+					<ol>
+						<li class="certnavli"><a href="#rooth3">Root CA</a></li>
+						<li class="certnavli"><a href="#inter1h3">Intermediate 1 CA</a></li>
+						<li class="certnavli"><a href="#inter2h3">Intermediate 2 CA</a></li>
+						<li class="certnavli"><a href="#endentityh3">End-entity</a></li>
+					</ol>
+				</nav>
+				<h3 id="rooth3">---- Root Certificate Authority ----</h3>
+				<label>Version:
+					<input type="text" id="version" disabled value="3" />
+				</label> <br />
+				<span class="{{.pubKeyAlgoRoot.Error}}">
+					<input id="rsa" type="radio" name="pubKeyAlgoRoot" class="{{.pubKeyAlgoRoot.Error}}" value="RSA" />
+					<label for="rsa">RSA</label>
+					<label>Key Size:
+						<select name="keysizeRSARoot" class="{{.keysizeRSARoot.Error}}">
+							<option value="2048">2048</option>
+							<option value="3072">3072</option>
+							<option value="4096">4096</option>
+						</select>
+					</label>
+					<label>Signature Algorithm:
+						<select name="sigAlgoRSARoot" class="{{.sigAlgoRSARoot.Error}}">
+							<option value="SHA256WithRSA">RSA with SHA256</option>
+							<option value="SHA384WithRSA">RSA with SHA384</option>
+							<option value="SHA512WithRSA">RSA with SHA512</option>
+						</select>
+					</label>
+				</span>
+				<br />
+				<span class="{{.pubKeyAlgoRoot.Error}}">
+					<input id="ecdsa" type="radio" name="pubKeyAlgoRoot" class="{{.pubKeyAlgoRoot.Error}}" value="ECDSA" />
+					<label for="ecdsa">ECDSA</label>
+					<label>Key Size:
+						<select name="keysizeECDSARoot" class="{{.keysizeECDSARoot.Error}}">
+							<option value="256">256</option>
+							<option value="384">384</option>
+							<option value="512">512</option>
+						</select>
+					</label>
+					<label>Signature Algorithm:
+						<select name="sigAlgoECDSARoot" class="{{.sigAlgoECDSARoot.Error}}">
+							<option value="ECDSAWithSHA256">ECDSA with SHA256</option>
+							<option value="ECDSAWithSHA384">ECDSA with SHA384</option>
+							<option value="ECDSAWithSHA512">ECDSA with SHA512</option>
+						</select>
+					</label>
+				</span>
+				<br />
+				<label>Validity (Days):
+					<input type="number" name="validityRoot" class="{{.validityRoot.Error}}" value="{{.validityRoot.Text}}" required min="1"/>
+				</label>
+				<h4>---- Subject ----</h4>
+				<label class="subject" for="country">Country:</label>
+				<input type="text" id="country" name="countryRoot" class="{{.countryRoot.Error}}" value="{{.countryRoot.Text}}" required/>
+				<br />
+				<label class="subject" for="state">State:</label>
+				<input type="text" id="state" name="stateRoot" class="{{.stateRoot.Error}}" value="{{.stateRoot.Text}}" required/>
+				<br />
+				<label class="subject" for="locality">Locality:</label>
+				<input type="text" id="locality" name="localityRoot" class="{{.localityRoot.Error}}" value="{{.localityRoot.Text}}" required/>
+				<br />
+				<label class="subject" for="organization">Organization:</label>
+				<input type="text" id="organization" name="orgRoot" class="{{.orgRoot.Error}}" value="{{.orgRoot.Text}}" required/>
+				<br />
+				<label class="subject" for="orgunit">Organization Unit:</label>
+				<input type="text" id="orgunit" name="orgunitRoot" class="{{.orgunitRoot.Error}}" value="{{.orgunitRoot.Text}}" required/>
+				<br />
+				<label class="subject" for="cn">Common Name:</label>
+				<input type="text" id="cn" name="cnRoot" class="{{.cnRoot.Error}}" value="{{.cnRoot.Text}}" required/>
+				<br />
+				<h4>---- X509v3 Extensions ----</h4>
+				<label>Key Usage:
+					<select name="keyusageRoot" class="{{.keyusageRoot.Error}}" multiple size="4" required>
+						<option value="DigitalSignature">Digital Signature</option>
+						<option value="KeyAgreement">Key Agreement</option>
+						<option value="CertSign">Cert Sign</option>
+						<option value="CRLSign">CRL Sign</option>					
+					</select>>
+				</label> <br />
+				<span class="{{.caRoot.Error}}">
+					<label for="ca" class="basicconstraints">CA:</label>
+					<input type="checkbox" id="ca" name="caRoot" class="{{.caRoot.Error}}" value="ca" required/>
+				</span>
+				<br />
+				<label for="crldp" class="crlchecking">CRLDP:</label>
+				<input type="url" id="crldp" name="crldpRoot" class="{{.crldpRoot.Error}}" value="{{.crldpRoot.Text}}" />
+				<br />
+				<label for="ocsp" class="crlchecking">OCSP:</label>
+				<input type="url" id="ocsp" name="ocspRoot" class="{{.ocspRoot.Error}}" value="{{.ocspRoot.Text}}" />
+				<br />
+				<p>Subject Alternative Name:
+					<br />
+					<label>IP 1:
+						<input type="text" name="san1Root" class="{{.san1Root.Error}}" value="{{.san1Root.Text}}" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"/>
+					</label> <br />
+					<label>IP 2:
+						<input type="text" name="san2Root" class="{{.san2Root.Error}}" value="{{.san2Root.Text}}" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"/>
+					</label> <br />
+					<label>IP 3:
+						<input type="text" name="san3Root" class="{{.san3Root.Error}}" value="{{.san3Root.Text}}" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"/>
+					</label> <br />
+					<label>IP 4:
+						<input type="text" name="san4Root" class="{{.san4Root.Error}}" value="{{.san4Root.Text}}" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"/>
+					</label> <br />
+					<label>IP 5:
+						<input type="text" name="san5Root" class="{{.san5Root.Error}}" value="{{.san5Root.Text}}" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"/>
+					</label>
+				</p>
+				<label>Extended Key Usage:
+					<select name="extkeyusageRoot" class="{{.extkeyusageRoot.Error}}" multiple size="4">
+						<option value="ServerAuth">Server Authentication</option>
+						<option value="ClientAuth">Client Authentication</option>
+						<option value="CodeSigning">Code Signing</option>
+						<option value="IPSECTunnel">IPSec Tunnel</option>					
+					</select>>
+				</label> <br />
+				<hr />
+				<label id="numinterCAs">Number of Intermediate Certificate Authorities:
+					<select name="numinterCAs" class="{{.numinterCAs.Error}}" required>
+						<option value="0">0</option>
+						<option value="1">1</option>
+						<option value="2">2</option>
+					</select>
+				</label>
+				<h3 id="inter1h3">---- Intermediate 1 Certificate Authority ----</h3>
+				<label>Version:
+					<input type="text" id="version" disabled value="3" />
+				</label> <br />
+				<span class="{{.pubKeyAlgoInter1.Error}}">
+					<input id="rsa" type="radio" name="pubKeyAlgoInter1" class="{{.pubKeyAlgoInter1.Error}}" value="RSA" />
+					<label for="rsa">RSA</label>
+					<label>Key Size:
+						<select name="keysizeRSAInter1" class="{{.keysizeRSAInter1.Error}}">
+							<option value="2048">2048</option>
+							<option value="3072">3072</option>
+							<option value="4096">4096</option>
+						</select>
+					</label>
+					<label>Signature Algorithm:
+						<select name="sigAlgoRSAInter1" class="{{.sigAlgoRSAInter1.Error}}">
+							<option value="SHA256WithRSA">RSA with SHA256</option>
+							<option value="SHA384WithRSA">RSA with SHA384</option>
+							<option value="SHA512WithRSA">RSA with SHA512</option>
+						</select>
+					</label>
+				</span>
+				<br />
+				<span class="{{.pubKeyAlgoInter1.Error}}">
+					<input id="ecdsa" type="radio" name="pubKeyAlgoInter1" class="{{.pubKeyAlgoInter1.Error}}" value="ECDSA" />
+					<label for="ecdsa">ECDSA</label>
+					<label>Key Size:
+						<select name="keysizeECDSAInter1" class="{{.keysizeECDSAInter1.Error}}">
+							<option value="256">256</option>
+							<option value="384">384</option>
+							<option value="512">512</option>
+						</select>
+					</label>
+					<label>Signature Algorithm:
+						<select name="sigAlgoECDSAInter1" class="{{.sigAlgoECDSAInter1.Error}}">
+							<option value="ECDSAWithSHA256">ECDSA with SHA256</option>
+							<option value="ECDSAWithSHA384">ECDSA with SHA384</option>
+							<option value="ECDSAWithSHA512">ECDSA with SHA512</option>
+						</select>
+					</label>
+				</span>
+					<br />
+				<label>Validity (Days):
+					<input type="number" name="validityInter1" class="{{.validityInter1.Error}}" value="{{.validityInter1.Text}}"  min="1"/>
+				</label>
+				<h4>---- Subject ----</h4>
+				<label class="subject" for="country">Country:</label>
+				<input type="text" id="country" name="countryInter1" class="{{.countryInter1.Error}}" value="{{.countryInter1.Text}}" />
+				<br />
+				<label class="subject" for="state">State:</label>
+				<input type="text" id="state" name="stateInter1" class="{{.stateInter1.Error}}" value="{{.stateInter1.Text}}" />
+				<br />
+				<label class="subject" for="locality">Locality:</label>
+				<input type="text" id="locality" name="localityInter1" class="{{.localityInter1.Error}}" value="{{.localityInter1.Text}}" />
+				<br />
+				<label class="subject" for="organization">Organization:</label>
+				<input type="text" id="organization" name="orgInter1" class="{{.orgInter1.Error}}" value="{{.orgInter1.Text}}" />
+				<br />
+				<label class="subject" for="orgunit">Organization Unit:</label>
+				<input type="text" id="orgunit" name="orgunitInter1" class="{{.orgunitInter1.Error}}" value="{{.orgunitInter1.Text}}" />
+				<br />
+				<label class="subject" for="cn">Common Name:</label>
+				<input type="text" id="cn" name="cnInter1" class="{{.cnInter1.Error}}" value="{{.cnInter1.Text}}" />
+				<br />
+				<h4>---- X509v3 Extensions ----</h4>
+				<label>Key Usage:
+					<select name="keyusageInter1" class="{{.keyusageInter1.Error}}" multiple size="4" >
+						<option value="DigitalSignature">Digital Signature</option>
+						<option value="KeyAgreement">Key Agreement</option>
+						<option value="CertSign">Cert Sign</option>
+						<option value="CRLSign">CRL Sign</option>					
+					</select>>
+				</label> <br />
+				<span class="{{.caInter1.Error}}">
+					<label for="ca" class="basicconstraints">CA:</label>
+					<input type="checkbox" id="ca" name="caInter1" class="{{.caInter1.Error}}" value="ca" />
+				</span>
+				<br />
+				<label for="crldp" class="crlchecking">CRLDP:</label>
+					<input type="url" id="crldp" name="crldpInter1" class="{{.crldpInter1.Error}}" value="{{.crldpInter1.Text}}" />
+				<br />
+				<label for="ocsp" class="crlchecking">OCSP:</label>
+				<input type="url" id="ocsp" name="ocspInter1" class="{{.ocspInter1.Error}}" value="{{.ocspInter1.Text}}" />
+				<br />
+				<p>Subject Alternative Name:
+					<br />
+					<label>IP 1:
+						<input type="text" name="san1Inter1" class="{{.san1Inter1.Error}}" value="{{.san1Inter1.Text}}" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"/>
+					</label> <br />
+					<label>IP 2:
+						<input type="text" name="san2Inter1" class="{{.san2Inter1.Error}}" value="{{.san2Inter1.Text}}" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"/>
+					</label> <br />
+					<label>IP 3:
+						<input type="text" name="san3Inter1" class="{{.san3Inter1.Error}}" value="{{.san3Inter1.Text}}" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"/>
+					</label> <br />
+					<label>IP 4:
+						<input type="text" name="san4Inter1" class="{{.san4Inter1.Error}}" value="{{.san4Inter1.Text}}" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"/>
+					</label> <br />
+					<label>IP 5:
+						<input type="text" name="san5Inter1" class="{{.san5Inter1.Error}}" value="{{.san5Inter1.Text}}" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"/>
+					</label>
+				</p>
+				<label>Extended Key Usage:
+					<select name="extkeyusageInter1" class="{{.extkeyusageInter1.Error}}" multiple size="4">
+						<option value="ServerAuth">Server Authentication</option>
+						<option value="ClientAuth">Client Authentication</option>
+						<option value="CodeSigning">Code Signing</option>
+						<option value="IPSECTunnel">IPSec Tunnel</option>					
+					</select>>
+				</label> <br />
+				<hr />
+				<h3 id="inter2h3">---- Intermediate 2 Certificate Authority ----</h3>
+				<label>Version:
+					<input type="text" id="version" disabled value="3" />
+				</label> <br />
+				<span class="{{.pubKeyAlgoInter2.Error}}">
+					<input id="rsa" type="radio" name="pubKeyAlgoInter2" class="{{.pubKeyAlgoInter2.Error}}" value="RSA" />
+					<label for="rsa">RSA</label>
+					<label>Key Size:
+						<select name="keysizeRSAInter2" class="{{.keysizeRSAInter2.Error}}">
+							<option value="2048">2048</option>
+							<option value="3072">3072</option>
+							<option value="4096">4096</option>
+						</select>
+					</label>
+					<label>Signature Algorithm:
+						<select name="sigAlgoRSAInter2" class="{{.sigAlgoRSAInter2.Error}}">
+							<option value="SHA256WithRSA">RSA with SHA256</option>
+							<option value="SHA384WithRSA">RSA with SHA384</option>
+							<option value="SHA512WithRSA">RSA with SHA512</option>
+						</select>
+					</label>
+				</span>
+				<br />
+				<span class="{{.pubKeyAlgoInter2.Error}}">
+					<input id="ecdsa" type="radio" name="pubKeyAlgoInter2" class="{{.pubKeyAlgoInter2.Error}}" value="ECDSA" />
+					<label for="ecdsa">ECDSA</label>
+					<label>Key Size:
+						<select name="keysizeECDSAInter2" class="{{.keysizeECDSAInter2.Error}}">
+							<option value="256">256</option>
+							<option value="384">384</option>
+							<option value="512">512</option>
+						</select>
+					</label>
+					<label>Signature Algorithm:
+						<select name="sigAlgoECDSAInter2" class="{{.sigAlgoECDSAInter2.Error}}">
+							<option value="ECDSAWithSHA256">ECDSA with SHA256</option>
+							<option value="ECDSAWithSHA384">ECDSA with SHA384</option>
+							<option value="ECDSAWithSHA512">ECDSA with SHA512</option>
+						</select>
+					</label> 
+				</span>
+				<br />
+				<label>Validity (Days):
+					<input type="number" name="validityInter2" class="{{.validityInter2.Error}}" value="{{.validityInter2.Text}}"  min="1"/>
+				</label>
+				<h4>---- Subject ----</h4>
+				<label class="subject" for="country">Country:</label>
+				<input type="text" id="country" name="countryInter2" class="{{.countryInter2.Error}}" value="{{.countryInter2.Text}}" />
+				<br />
+				<label class="subject" for="state">State:</label>
+				<input type="text" id="state" name="stateInter2" class="{{.stateInter2.Error}}" value="{{.stateInter2.Text}}" />
+				<br />
+				<label class="subject" for="locality">Locality:</label>
+				<input type="text" id="locality" name="localityInter2" class="{{.localityInter2.Error}}" value="{{.localityInter2.Text}}" />
+				<br />
+				<label class="subject" for="organization">Organization:</label>
+				<input type="text" id="organization" name="orgInter2" class="{{.orgInter2.Error}}" value="{{.orgInter2.Text}}" />
+				<br />
+				<label class="subject" for="orgunit">Organization Unit:</label>
+				<input type="text" id="orgunit" name="orgunitInter2" class="{{.orgunitInter2.Error}}" value="{{.orgunitInter2.Text}}" />
+				<br />
+				<label class="subject" for="cn">Common Name:</label>
+					<input type="text" id="cn" name="cnInter2" class="{{.cnInter2.Error}}" value="{{.cnInter2.Text}}" />
+				<br />
+				<h4>---- X509v3 Extensions ----</h4>
+				<label>Key Usage:
+					<select name="keyusageInter2" class="{{.keyusageInter2.Error}}" multiple size="4" >
+						<option value="DigitalSignature">Digital Signature</option>
+						<option value="KeyAgreement">Key Agreement</option>
+						<option value="CertSign">Cert Sign</option>
+						<option value="CRLSign">CRL Sign</option>					
+					</select>>
+				</label> <br />
+				<span class="{{.caInter2.Error}}">
+					<label for="ca" class="basicconstraints">CA:</label>
+					<input type="checkbox" id="ca" name="caInter2" class="{{.caInter2.Error}}" value="ca" />
+				</span>
+				<br />
+				<label for="crldp" class="crlchecking">CRLDP:</label>
+					<input type="url" id="crldp" name="crldpInter2" class="{{.crldpInter2.Error}}" value="{{.crldpInter2.Text}}" />
+				<br />
+				<label for="ocsp" class="crlchecking">OCSP:</label>
+				<input type="url" id="ocsp" name="ocspInter2" class="{{.ocspInter2.Error}}" value="{{.ocspInter2.Text}}" />
+				<br />
+				<p>Subject Alternative Name:
+					<br />
+					<label>IP 1:
+						<input type="text" name="san1Inter2" class="{{.san1Inter2.Error}}" value="{{.san1Inter2.Text}}" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"/>
+					</label> <br />
+					<label>IP 2:
+						<input type="text" name="san2Inter2" class="{{.san2Inter2.Error}}" value="{{.san2Inter2.Text}}" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"/>
+					</label> <br />
+					<label>IP 3:
+						<input type="text" name="san3Inter2" class="{{.san3Inter2.Error}}" value="{{.san3Inter2.Text}}" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"/>
+					</label> <br />
+					<label>IP 4:
+						<input type="text" name="san4Inter2" class="{{.san4Inter2.Error}}" value="{{.san4Inter2.Text}}" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"/>
+					</label> <br />
+					<label>IP 5:
+						<input type="text" name="san5Inter2" class="{{.san5Inter2.Error}}" value="{{.san5Inter2.Text}}" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"/>
+					</label>
+				</p>
+				<label>Extended Key Usage:
+					<select name="extkeyusageInter2" class="{{.extkeyusageInter2.Error}}" multiple size="4">
+						<option value="ServerAuth">Server Authentication</option>
+						<option value="ClientAuth">Client Authentication</option>
+						<option value="CodeSigning">Code Signing</option>
+						<option value="IPSECTunnel">IPSec Tunnel</option>					
+					</select>>
+				</label> <br />
+				<hr />
+				<h3 id="endentityh3">---- End-entity Certificate ----</h3>
+				<label>Version:
+					<input type="text" id="version" disabled value="3" />
+				</label> <br />
+				<span class="{{.pubKeyAlgoEndEntity.Error}}">
+					<input id="rsa" type="radio" name="pubKeyAlgoEndEntity" class="{{.pubKeyAlgoEndEntity.Error}}" value="RSA" />
+					<label for="rsa">RSA</label>
+					<label>Key Size:
+						<select name="keysizeRSAEndEntity" class="{{.keysizeRSAEndEntity.Error}}">
+							<option value="2048">2048</option>
+							<option value="3072">3072</option>
+							<option value="4096">4096</option>
+						</select>
+					</label>
+					<label>Signature Algorithm:
+						<select name="sigAlgoRSAEndEntity" class="{{.sigAlgoRSAEndEntity.Error}}">
+							<option value="SHA256WithRSA">RSA with SHA256</option>
+							<option value="SHA384WithRSA">RSA with SHA384</option>
+							<option value="SHA512WithRSA">RSA with SHA512</option>
+						</select>
+					</label> 
+				</span>
+				<br />
+				<span class="{{.pubKeyAlgoEndEntity.Error}}">
+					<input id="ecdsa" type="radio" name="pubKeyAlgoEndEntity" class="{{.pubKeyAlgoEndEntity.Error}}" value="ECDSA" />
+					<label for="ecdsa">ECDSA</label>
+					<label>Key Size:
+						<select name="keysizeECDSAEndEntity" class="{{.keysizeECDSAEndEntity.Error}}">
+							<option value="256">256</option>
+							<option value="384">384</option>
+							<option value="512">512</option>
+						</select>
+					</label>
+					<label>Signature Algorithm:
+						<select name="sigAlgoECDSAEndEntity" class="{{.sigAlgoECDSAEndEntity.Error}}">
+							<option value="ECDSAWithSHA256">ECDSA with SHA256</option>
+							<option value="ECDSAWithSHA384">ECDSA with SHA384</option>
+							<option value="ECDSAWithSHA512">ECDSA with SHA512</option>
+						</select>
+					</label>
+				</span>
+				<br />
+				<label>Validity (Days):
+					<input type="number" name="validityEndEntity" class="{{.validityEndEntity.Error}}" value="{{.validityEndEntity.Text}}" required min="1"/>
+				</label>
+				<h4>---- Subject ----</h4>
+				<label class="subject" for="country">Country:</label>
+				<input type="text" id="country" name="countryEndEntity" class="{{.countryEndEntity.Error}}" value="{{.countryEndEntity.Text}}" required/>
+				<br />
+				<label class="subject" for="state">State:</label>
+				<input type="text" id="state" name="stateEndEntity" class="{{.stateEndEntity.Error}}" value="{{.stateEndEntity.Text}}" required/>
+				<br />
+				<label class="subject" for="locality">Locality:</label>
+				<input type="text" id="locality" name="localityEndEntity" class="{{.localityEndEntity.Error}}" value="{{.localityEndEntity.Text}}" required/>
+				<br />
+				<label class="subject" for="organization">Organization:</label>
+				<input type="text" id="organization" name="orgEndEntity" class="{{.orgEndEntity.Error}}" value="{{.orgEndEntity.Text}}" required/>
+				<br />
+				<label class="subject" for="orgunit">Organization Unit:</label>
+				<input type="text" id="orgunit" name="orgunitEndEntity" class="{{.orgunitEndEntity.Error}}" value="{{.orgunitEndEntity.Text}}" required/>
+				<br />
+				<label class="subject" for="cn">Common Name:</label>
+				<input type="text" id="cn" name="cnEndEntity" class="{{.cnEndEntity.Error}}" value="{{.cnEndEntity.Text}}" required/>
+				<br />
+				<h4>---- X509v3 Extensions ----</h4>
+				<label>Key Usage:
+					<select name="keyusageEndEntity" class="{{.keyusageEndEntity.Error}}" multiple size="4" required>
+						<option value="DigitalSignature">Digital Signature</option>
+						<option value="KeyAgreement">Key Agreement</option>
+						<option value="CertSign">Cert Sign</option>
+						<option value="CRLSign">CRL Sign</option>					
+					</select>>
+				</label> <br />
+				<span class="{{.caEndEntity.Error}}">
+					<label for="ca" class="basicconstraints">CA:</label>
+					<input type="checkbox" id="ca" name="caEndEntity" class="{{.caEndEntity.Error}}" value="ca"/>
+				</span>
+				<br />
+				<label for="crldp" class="crlchecking">CRLDP:</label>
+				<input type="url" id="crldp" name="crldpEndEntity" class="{{.crldpEndEntity.Error}}" value="{{.crldpEndEntity.Text}}" />
+				<br />
+				<label for="ocsp" class="crlchecking">OCSP:</label>
+					<input type="url" id="ocsp" name="ocspEndEntity" class="{{.ocspEndEntity.Error}}" value="{{.ocspEndEntity.Text}}" />
+				<br />
+				<p>Subject Alternative Name:
+					<br />
+					<label>IP 1:
+						<input type="text" name="san1EndEntity" class="{{.san1EndEntity.Error}}" value="{{.san1EndEntity.Text}}" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"/>
+					</label> <br />
+					<label>IP 2:
+						<input type="text" name="san2EndEntity" class="{{.san2EndEntity.Error}}" value="{{.san2EndEntity.Text}}" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"/>
+					</label> <br />
+					<label>IP 3:
+						<input type="text" name="san3EndEntity" class="{{.san3EndEntity.Error}}" value="{{.san3EndEntity.Text}}" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"/>
+					</label> <br />
+					<label>IP 4:
+						<input type="text" name="san4EndEntity" class="{{.san4EndEntity.Error}}" value="{{.san4EndEntity.Text}}" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"/>
+					</label> <br />
+					<label>IP 5:
+						<input type="text" name="san5EndEntity" class="{{.san5EndEntity.Error}}" value="{{.san5EndEntity.Text}}" pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"/>
+					</label>
+				</p>
+				<label>Extended Key Usage:
+					<select name="extkeyusageEndEntity" class="{{.extkeyusageEndEntity.Error}}" multiple size="4" required>
+						<option value="ServerAuth">Server Authentication</option>
+						<option value="ClientAuth">Client Authentication</option>
+						<option value="CodeSigning">Code Signing</option>
+						<option value="IPSECTunnel">IPSec Tunnel</option>					
+					</select>>
+				</label> <br />
+				<input type="submit" value="Submit" />
+			</fieldset>
+		</form>
+	</body>
+</html>
